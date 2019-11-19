@@ -1,12 +1,18 @@
 import { Router } from "express";
 import UserController from "./controllers/UserController";
-const userController = new UserController();
+import { injectable, inject } from "tsyringe";
 
-// Init router and path
-const router = Router();
+@injectable()
+export default class MyRouter {
+    public readonly router = Router();
 
-// Add sub-routes
-router.use("/users", userController.router);
+    constructor(@inject("UserController") private readonly userController?: UserController) {
+        this.init();
+    }
 
-// Export the base-router
-export default router;
+    private init() {
+        // Add sub-routes
+        this.router.use("/users", this.userController!.router);
+    }
+
+}

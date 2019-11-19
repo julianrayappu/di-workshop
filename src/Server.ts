@@ -1,18 +1,22 @@
 import cookieParser from "cookie-parser";
-import express from "express";
+import express, { Router } from "express";
 import logger from "morgan";
-import path from "path";
 import BaseRouter from "./router";
+import {singleton, inject} from "tsyringe";
 
-// Init express
-const app = express();
+@singleton()
+export default class App {
+    public readonly router = express();
 
-// Add middleware/settings/routes to express.
-app.use(logger("dev"));
-app.use(express.json());
-app.use(express.urlencoded({extended: true}));
-app.use(cookieParser());
-app.use("/", BaseRouter);
+    constructor(@inject("BaseRouter") private readonly baseRouter?: BaseRouter) {
+        this.init();
+    }
 
- // Export express instance
-export default app;
+    public init(): void {
+        this.router.use(logger("dev"));
+        this.router.use(express.json());
+        this.router.use(express.urlencoded({extended: true}));
+        this.router.use(cookieParser());
+        this.router.use("/", this.baseRouter!.router);
+    }
+}

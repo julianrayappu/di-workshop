@@ -1,11 +1,12 @@
 import { Router } from "express";
 import SqlDataSource from "../dataSources/SqlDataSource";
+import { injectable, inject } from "tsyringe";
 
+@injectable()
 export default class UserController {
     public readonly router = Router();
-    private readonly dataSource = new SqlDataSource();
 
-    constructor() {
+    constructor(@inject("SqlDataSource") private readonly dataSource: SqlDataSource ) {
         this.init();
     }
 

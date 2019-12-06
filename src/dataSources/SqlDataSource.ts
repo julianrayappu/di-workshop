@@ -7,6 +7,9 @@ export default class SqlDataSource {
     }
 
     public getValue(): string {
-        return this.connector.connectAndGetData();
+        if (this.connector.connect()) {
+            return this.connector.getData("field1");
+        }
+        return "no data";
     }
 }

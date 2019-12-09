@@ -23,7 +23,7 @@ describe("Test SqlDataSource", () => {
 
     test("gets a string value, after 2 connect attempts", () => {
         StubSqlConnector.prototype.connect = jest.fn().mockReturnValueOnce(false)
-                                                    .mockReturnValueOnce(true);
+                                                      .mockReturnValueOnce(true);
 
         StubSqlConnector.prototype.getData = jest.fn().mockReturnValue("dummy data");
 
@@ -42,7 +42,7 @@ describe("Test SqlDataSource", () => {
         // Make the test call
         let value: string = "";
         try {
-            expect(value = sqlDataSource.getValue()).toThrow("Failed to connect");
+            expect(value = sqlDataSource.getValue()).toThrowError("Failed to connect");
         } catch (e) {
             expect(value).toBe("");
         }

@@ -7,9 +7,18 @@ export default class SqlDataSource {
     }
 
     public getValue(): string {
-        if (this.connector.connect()) {
-            return this.connector.getData("field1");
+        if (!this.connect()) {
+            throw new Error("Failed to connect");
         }
-        return "no data";
+        return this.connector.getData("key");
+    }
+
+    public connect(): boolean {
+        const maxRetries: number = 3;
+        let attempts: number = 0;
+        while (attempts < maxRetries && !this.connector.connect()) {
+            attempts++;
+        }
+        return attempts < maxRetries;
     }
 }

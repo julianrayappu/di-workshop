@@ -3,3 +3,5 @@ export default interface ISqlConnector {
     getData(key: string): string;
     connectAndGetData(): string;
 }
+
+export { ISqlConnector };

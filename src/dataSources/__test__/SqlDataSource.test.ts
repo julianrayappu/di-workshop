@@ -1,28 +1,53 @@
-import { ImportMock, MockManager } from "ts-mock-imports";
+// import { ImportMock, MockManager } from "ts-mock-imports";
 import "reflect-metadata";
-import * as connector from "../../connectors/MySqlConnector";
+import { StubSqlConnector } from "../../connectors/test/StubSqlConnector";
 import SqlDataSource from "../SqlDataSource";
 
+jest.mock("../../connectors/MySqlConnector");
+
 describe("Test SqlDataSource", () => {
-    let connectorMock: MockManager<connector.MySqlConnector>;
-    let sqlDataSource: SqlDataSource;
+    const sqlDataSource: SqlDataSource = new SqlDataSource(StubSqlConnector.prototype);
 
-    beforeEach(() => {
-        connectorMock = ImportMock.mockClass(connector, "MySqlConnector");
-        sqlDataSource = new SqlDataSource(connectorMock.getMockInstance());
+    test("gets a string value successfully", () => {
+        // set up the mock
+        StubSqlConnector.prototype.connect = jest.fn().mockReturnValue(true);
+        StubSqlConnector.prototype.getData = jest.fn().mockReturnValue("Dummy Data");
+
+        const value: string = sqlDataSource.getValue();
+
+        expect(value).toBe("Dummy Data");
+        expect(StubSqlConnector.prototype.connect).toBeCalledTimes(1);
+        expect(StubSqlConnector.prototype.getData).toBeCalledTimes(1);
+        expect(StubSqlConnector.prototype.getData).toHaveBeenCalledWith("key");
     });
 
-    afterEach(() => {
-        connectorMock.restore();
+    test("gets a string value, after 2 connect attempts", () => {
+        StubSqlConnector.prototype.connect = jest.fn().mockReturnValueOnce(false)
+                                                    .mockReturnValueOnce(true);
+
+        StubSqlConnector.prototype.getData = jest.fn().mockReturnValue("dummy data");
+
+        // Make the test call
+        const value: string = sqlDataSource.getValue();
+
+        expect(value).toBe("dummy data");
+        expect(StubSqlConnector.prototype.connect).toBeCalledTimes(2);
+        expect(StubSqlConnector.prototype.getData).toBeCalled();
     });
 
-    test("gets a string value", () => {
-        connectorMock.mock("connect", true);
+    test("fails to get a string value, \"Failed to connect\" thrown", () => {
+        StubSqlConnector.prototype.connect = jest.fn().mockReturnValue(false);
+        StubSqlConnector.prototype.getData = jest.fn().mockReturnValue("test data");
 
-        const data: string = "XQL data";
-        connectorMock.mock("getData", data);
+        // Make the test call
+        let value: string = "";
+        try {
+            expect(value = sqlDataSource.getValue()).toThrow("Failed to connect");
+        } catch (e) {
+            expect(value).toBe("");
+        }
 
-        // sqlDataSource.getValue();
-        expect(sqlDataSource.getValue()).toBe(data);
+        expect(StubSqlConnector.prototype.connect).toBeCalledTimes(3);
+        expect(StubSqlConnector.prototype.getData).toBeCalledTimes(0);
     });
 });
